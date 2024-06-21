@@ -54,6 +54,11 @@ class RoleResource extends Resource implements HasShieldPermissions
                                     ->nullable()
                                     ->maxLength(255),
 
+                                Forms\Components\Select::make(config('permission.column_names.team_foreign_key'))
+                                    ->options(config('permission.models.team')::all()->pluck('name', 'id')->toArray())
+                                    ->native(false)
+                                    ->searchable(),
+
                                 ShieldSelectAllToggle::make('select_all')
                                     ->onIcon('heroicon-s-shield-check')
                                     ->offIcon('heroicon-s-shield-exclamation')
@@ -90,6 +95,9 @@ class RoleResource extends Resource implements HasShieldPermissions
                     ->colors(['primary'])
                     ->searchable(),
                 Tables\Columns\TextColumn::make('guard_name')
+                    ->badge()
+                    ->label(__('filament-shield::filament-shield.column.guard_name')),
+                Tables\Columns\TextColumn::make(config('permission.column_names.team_relation_name') . '.name')
                     ->badge()
                     ->label(__('filament-shield::filament-shield.column.guard_name')),
                 Tables\Columns\TextColumn::make('permissions_count')
@@ -206,8 +214,8 @@ class RoleResource extends Resource implements HasShieldPermissions
             ->map(function ($entity) {
                 $sectionLabel = strval(
                     static::shield()->hasLocalizedPermissionLabels()
-                    ? FilamentShield::getLocalizedResourceLabel($entity['fqcn'])
-                    : $entity['model']
+                        ? FilamentShield::getLocalizedResourceLabel($entity['fqcn'])
+                        : $entity['model']
                 );
 
                 return Forms\Components\Section::make($sectionLabel)
@@ -301,14 +309,14 @@ class RoleResource extends Resource implements HasShieldPermissions
         return static::shield()->hasSimpleResourcePermissionView()
             ? static::getTabFormComponentForSimpleResourcePermissionsView()
             : Forms\Components\Tabs\Tab::make('resources')
-                ->label(__('filament-shield::filament-shield.resources'))
-                ->visible(fn (): bool => (bool) Utils::isResourceEntityEnabled())
-                ->badge(static::getResourceTabBadgeCount())
-                ->schema([
-                    Forms\Components\Grid::make()
-                        ->schema(static::getResourceEntitiesSchema())
-                        ->columns(static::shield()->getGridColumns()),
-                ]);
+            ->label(__('filament-shield::filament-shield.resources'))
+            ->visible(fn (): bool => (bool) Utils::isResourceEntityEnabled())
+            ->badge(static::getResourceTabBadgeCount())
+            ->schema([
+                Forms\Components\Grid::make()
+                    ->schema(static::getResourceEntitiesSchema())
+                    ->columns(static::shield()->getGridColumns()),
+            ]);
     }
 
     public static function getCheckBoxListComponentForResource(array $entity): Component
@@ -388,7 +396,7 @@ class RoleResource extends Resource implements HasShieldPermissions
                     record: $record
                 )
             )
-            ->dehydrated(fn ($state) => ! blank($state))
+            ->dehydrated(fn ($state) => !blank($state))
             ->bulkToggleable()
             ->gridDirection('row')
             ->columns(static::shield()->getCheckboxListColumns())

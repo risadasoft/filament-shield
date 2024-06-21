@@ -84,7 +84,22 @@ class MakeShieldSuperAdminCommand extends Command
             $this->superAdmin = $this->createSuperAdmin();
         }
 
-        $this->superAdmin->assignRole(Utils::getSuperAdminName());
+        /**
+         * @var \Illuminate\Database\Eloquent\Collection $teams
+         */
+
+        /**
+         * @var string $model
+         */
+
+        $model = config('permission.models.team');
+
+        $teams = $model::all();
+
+        foreach ($teams as $team) {
+            setPermissionsTeamId($team->id);
+            $this->superAdmin->assignRole(Utils::getSuperAdminName());
+        }
 
         $loginUrl = Filament::getCurrentPanel()?->getLoginUrl();
 
